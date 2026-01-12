@@ -7,10 +7,6 @@ export class PipelineStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
-        const buildEnvironment: codebuild.BuildEnvironment = {
-            buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
-        };
-
         const pipeline = new CodePipeline(this, 'Pipeline', {
             pipelineName: 'zeus-frontend-pipeline',
             synth: new ShellStep('Synth', {
@@ -22,16 +18,7 @@ export class PipelineStack extends cdk.Stack {
                     'npm run build',
                     'npm run cdk synth'
                 ]
-            }),
-            codeBuildDefaults: {
-                buildEnvironment,
-            },
-            synthCodeBuildDefaults: {
-                buildEnvironment,
-            },
-            selfMutationCodeBuildDefaults: {
-                buildEnvironment,
-            },
+            })
         });
     }
 }
