@@ -18,13 +18,23 @@ export class PipelineStack extends cdk.Stack {
             }
         );
 
+        const cdkRepo = CodePipelineSource.connection('nhannguyen95/zeus-frontend-cdk', 'main', {
+            connectionArn: githubConnection.attrConnectionArn,
+        });
+
+        const appRepo = CodePipelineSource.connection('nhannguyen95/zeus-frontend', 'main', {
+            connectionArn: githubConnection.attrConnectionArn,
+        });
+
         const pipeline = new CodePipeline(this, 'Pipeline', {
             pipelineName: 'zeus-frontend-pipeline',
             synth: new ShellStep('Synth', {
-                input: CodePipelineSource.connection('nhannguyen95/zeus-frontend-cdk', 'main', {
-                    connectionArn: githubConnection.attrConnectionArn,
-                }),
+                input: cdkRepo,
+                additionalInputs: {
+                    '../app': appRepo,
+                },
                 commands: [
+                    // TODO: build the appRepo
                     'npm install',
                     'npm run build',
                     'npm run cdk synth'
