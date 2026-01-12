@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { CodePipeline, ShellStep, CodePipelineSource } from 'aws-cdk-lib/pipelines';
+import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 
 export class PipelineStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -17,7 +18,12 @@ export class PipelineStack extends cdk.Stack {
                     'npm run build',
                     'npm run cdk synth'
                 ]
-            })
+            }),
+            codeBuildDefaults: {
+                buildEnvironment: {
+                    buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
+                }
+            }
         });
     }
 }
