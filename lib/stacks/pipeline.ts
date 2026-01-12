@@ -19,7 +19,7 @@ export class PipelineStack extends cdk.Stack {
                     'npm run cdk synth'
                 ]
             }),
-            codeBuildDefaults: {
+            selfMutationCodeBuildDefaults: {
                 buildEnvironment: {
                     buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
                 }
