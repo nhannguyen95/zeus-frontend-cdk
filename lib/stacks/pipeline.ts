@@ -22,7 +22,7 @@ export class PipelineStack extends cdk.Stack {
             pipelineName: 'zeus-frontend-pipeline',
             synth: new ShellStep('Synth', {
                 input: CodePipelineSource.connection('nhannguyen95/zeus-frontend-cdk', 'main', {
-                    connectionArn: 'arn:aws:codeconnections:us-east-1:533389119429:connection/42d60ce7-88e9-407d-86e4-71714f351907',
+                    connectionArn: githubConnection.attrConnectionArn,
                 }),
                 commands: [
                     'npm install',
