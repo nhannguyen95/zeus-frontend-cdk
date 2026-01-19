@@ -1,9 +1,8 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { CodePipeline, ShellStep, CodePipelineSource } from 'aws-cdk-lib/pipelines';
-import * as codebuild from 'aws-cdk-lib/aws-codebuild';
+import { CodePipeline, ShellStep, CodePipelineSource, ManualApprovalStep } from 'aws-cdk-lib/pipelines';
 import { aws_codestarconnections as codeconnections } from 'aws-cdk-lib';
-
+import { ApplicationStage } from '../stages/application';
 
 export class PipelineStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -41,5 +40,14 @@ export class PipelineStack extends cdk.Stack {
                 ]
             })
         });
+
+        const betaStage = pipeline.addStage(new ApplicationStage(this, 'Beta', {
+            websiteAssetPath: '../app/out',  // Path to TanStack Start static export
+            env: {
+                account: '970290367319',
+                region: 'us-west-2',
+            }
+        }));
+        betaStage.addPost(new ManualApprovalStep('Manual Approval'));
     }
 }
