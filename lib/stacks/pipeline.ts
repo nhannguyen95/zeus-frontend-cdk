@@ -40,6 +40,7 @@ export class PipelineStack extends cdk.Stack {
 
         const pipeline = new CodePipeline(this, 'Pipeline', {
             pipelineName: 'zeus-frontend-pipeline',
+            artifactBucket: artifactBucket,
             synth: new ShellStep('Synth', {
                 input: cdkRepo,
                 additionalInputs: {
