@@ -1,4 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
+import * as kms from 'aws-cdk-lib/aws-kms';
 import { Construct } from 'constructs';
 import { CodePipeline, ShellStep, CodePipelineSource, ManualApprovalStep } from 'aws-cdk-lib/pipelines';
 import { aws_codestarconnections as codeconnections } from 'aws-cdk-lib';
@@ -25,6 +26,10 @@ export class PipelineStack extends cdk.Stack {
             connectionArn: githubConnection.attrConnectionArn,
         });
 
+        const key = new kms.Key(this, 'ArtifactKey', {
+            alias: 'key/pipeline-artifact-key'
+        });
+
         const pipeline = new CodePipeline(this, 'Pipeline', {
             pipelineName: 'zeus-frontend-pipeline',
             synth: new ShellStep('Synth', {
@@ -41,13 +46,13 @@ export class PipelineStack extends cdk.Stack {
             })
         });
 
-        const betaStage = pipeline.addStage(new ApplicationStage(this, 'Beta', {
-            websiteAssetPath: '../app/out',  // Path to TanStack Start static export
-            env: {
-                account: '970290367319',
-                region: 'us-west-2',
-            }
-        }));
-        betaStage.addPost(new ManualApprovalStep('Manual Approval'));
+        // const betaStage = pipeline.addStage(new ApplicationStage(this, 'Beta', {
+        //     websiteAssetPath: '../app/out',  // Path to TanStack Start static export
+        //     env: {
+        //         account: '970290367319',
+        //         region: 'us-west-2',
+        //     }
+        // }));
+        // betaStage.addPost(new ManualApprovalStep('Manual Approval'));
     }
 }
