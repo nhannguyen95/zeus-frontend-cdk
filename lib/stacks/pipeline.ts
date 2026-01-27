@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import * as kms from 'aws-cdk-lib/aws-kms';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { CodePipeline, ShellStep, CodePipelineSource, ManualApprovalStep } from 'aws-cdk-lib/pipelines';
 import { aws_codestarconnections as codeconnections } from 'aws-cdk-lib';
@@ -28,6 +29,13 @@ export class PipelineStack extends cdk.Stack {
 
         const key = new kms.Key(this, 'ArtifactKey', {
             alias: 'key/pipeline-artifact-key'
+        });
+
+        const artifactBucket = new s3.Bucket(this, 'ArtifactBucket', {
+            bucketName: `pipeline-artifact-bucket-${this.account}`,
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
+            encryption: s3.BucketEncryption.KMS,
+            encryptionKey: key,
         });
 
         const pipeline = new CodePipeline(this, 'Pipeline', {
