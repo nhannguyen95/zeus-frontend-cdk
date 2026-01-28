@@ -50,13 +50,13 @@ export class PipelineStack extends cdk.Stack {
             },
         });
 
-        // const betaStage = pipeline.addStage(new ApplicationStage(this, 'Beta', {
-        //     websiteAssetPath: '../app/out',  // Path to NextJS static export
-        //     env: {
-        //         account: '970290367319',
-        //         region: 'us-west-2',
-        //     }
-        // }));
-        // betaStage.addPost(new ManualApprovalStep('Manual Approval'));
+        const betaStage = pipeline.addStage(new ApplicationStage(this, 'Beta', {
+            websiteAssetPath: '../app/out',  // Path to NextJS static export
+            env: {
+                account: '970290367319',
+                region: 'us-west-2',
+            }
+        }));
+        betaStage.addPost(new ManualApprovalStep('Manual Approval'));
     }
 }
