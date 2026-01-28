@@ -1,18 +1,13 @@
 import * as cdk from 'aws-cdk-lib';
 import * as kms from 'aws-cdk-lib/aws-kms';
 import * as s3 from 'aws-cdk-lib/aws-s3';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { CodePipeline, ShellStep, CodePipelineSource, ManualApprovalStep } from 'aws-cdk-lib/pipelines';
 import { aws_codestarconnections as codeconnections } from 'aws-cdk-lib';
 import { ApplicationStage } from '../stages/application';
 
-interface PipelineStackProps extends cdk.StackProps {
-    betaAccountId: string;
-}
-
 export class PipelineStack extends cdk.Stack {
-    constructor(scope: Construct, id: string, props: PipelineStackProps) {
+    constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
         const githubConnection = new codeconnections.CfnConnection(
@@ -23,18 +18,6 @@ export class PipelineStack extends cdk.Stack {
                 providerType: 'GitHub',
             }
         );
-
-        const betaCloudFormationRole = iam.Role.fromRoleArn(this,
-            'BetaCloudFormationRole',
-            `arn:aws:iam::${props.betaAccountId}:role/CloudFormationDeploymentRole`, {
-            mutable: false
-        });
-
-        const betaCrossAccountRole = iam.Role.fromRoleArn(this,
-            'BetaCrossAccountRole',
-            `arn:aws:iam::${props.betaAccountId}:role/CodePipelineCrossAccountRole`, {
-            mutable: false
-        });
 
         const cdkRepo = CodePipelineSource.connection('nhannguyen95/zeus-frontend-cdk', 'main', {
             connectionArn: githubConnection.attrConnectionArn,
