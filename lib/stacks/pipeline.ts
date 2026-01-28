@@ -1,4 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
+import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import { Construct } from 'constructs';
 import { CodePipeline, ShellStep, CodePipelineSource, ManualApprovalStep } from 'aws-cdk-lib/pipelines';
 import { aws_codestarconnections as codeconnections } from 'aws-cdk-lib';
@@ -41,11 +42,16 @@ export class PipelineStack extends cdk.Stack {
                     'npm run build',
                     'npm run cdk synth'
                 ]
-            })
+            }),
+            codeBuildDefaults: {
+                buildEnvironment: {
+                    buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
+                },
+            },
         });
 
         // const betaStage = pipeline.addStage(new ApplicationStage(this, 'Beta', {
-        //     websiteAssetPath: '../app/out',  // Path to TanStack Start static export
+        //     websiteAssetPath: '../app/out',  // Path to NextJS static export
         //     env: {
         //         account: '970290367319',
         //         region: 'us-west-2',
