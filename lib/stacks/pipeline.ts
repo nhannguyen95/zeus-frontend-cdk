@@ -27,6 +27,9 @@ export class PipelineStack extends cdk.Stack {
 
         const pipeline = new CodePipeline(this, 'Pipeline', {
             pipelineName: 'zeus-frontend-pipeline',
+            // Encrypt artifacts, required for cross-account deployments
+            crossAccountKeys: true,
+            enableKeyRotation: true, // optional
             synth: new ShellStep('Synth', {
                 input: cdkRepo,
                 additionalInputs: {
@@ -41,13 +44,13 @@ export class PipelineStack extends cdk.Stack {
             })
         });
 
-        const betaStage = pipeline.addStage(new ApplicationStage(this, 'Beta', {
-            websiteAssetPath: '../app/out',  // Path to TanStack Start static export
-            env: {
-                account: '970290367319',
-                region: 'us-west-2',
-            }
-        }));
-        betaStage.addPost(new ManualApprovalStep('Manual Approval'));
+        // const betaStage = pipeline.addStage(new ApplicationStage(this, 'Beta', {
+        //     websiteAssetPath: '../app/out',  // Path to TanStack Start static export
+        //     env: {
+        //         account: '970290367319',
+        //         region: 'us-west-2',
+        //     }
+        // }));
+        // betaStage.addPost(new ManualApprovalStep('Manual Approval'));
     }
 }
