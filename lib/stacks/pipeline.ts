@@ -4,11 +4,22 @@ import { Construct } from 'constructs';
 import { CodePipeline, ShellStep, CodePipelineSource, ManualApprovalStep } from 'aws-cdk-lib/pipelines';
 import { aws_codestarconnections as codeconnections } from 'aws-cdk-lib';
 import { ApplicationStage } from '../stages/application';
+import { Stage } from '../constants';
+
+interface PipelineStackProps extends cdk.StackProps {
+    stages: Array<Stage>
+}
 
 export class PipelineStack extends cdk.Stack {
-    constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    constructor(scope: Construct, id: string, props: PipelineStackProps) {
         super(scope, id, props);
 
+        const pipeline = this.createCodePipeline();
+
+        this.createDeploymentStages(pipeline, props.stages);
+    }
+
+    createCodePipeline(): CodePipeline {
         const githubConnection = new codeconnections.CfnConnection(
             this,
             'GithubConnection',
@@ -50,13 +61,24 @@ export class PipelineStack extends cdk.Stack {
             },
         });
 
-        const betaStage = pipeline.addStage(new ApplicationStage(this, 'Beta', {
-            websiteAssetPath: '../app/out',  // Path to NextJS static export
-            env: {
-                account: '970290367319',
-                region: 'us-west-2',
-            }
-        }));
-        betaStage.addPost(new ManualApprovalStep('Manual Approval'));
+        return pipeline;
+    }
+
+    createDeploymentStages(pipeline: CodePipeline, stages: Array<Stage>) {
+        stages.forEach(stage => {
+            const appStage = pipeline.addStage(new ApplicationStage(
+                this,
+                stage.name,
+                {
+                    websiteAssetPath: '../app/out',  // Path to NextJS static export
+                    stage,
+                    env: {
+                        account: stage.account.id,
+                        region: stage.account.region,
+                    }
+                }
+            ));
+            appStage.addPost(new ManualApprovalStep('Manual Approval'));
+        });
     }
 }
