@@ -6,6 +6,7 @@ export interface Account {
 enum AccountType {
     DEV = 'DEV',
     BETA = 'BETA',
+    PROD = 'PROD',
 }
 
 const ACCOUNTS: Record<AccountType, Account> = {
@@ -17,7 +18,12 @@ const ACCOUNTS: Record<AccountType, Account> = {
         id: '970290367319',
         region: 'us-west-2',
     },
+    [AccountType.PROD]: {
+        id: '002994899250',
+        region: 'us-west-1',
+    },
 }
 
 export const DEV_ACCOUNT = ACCOUNTS[AccountType.DEV];
 export const BETA_ACCOUNT = ACCOUNTS[AccountType.BETA];
+export const PROD_ACCOUNT = ACCOUNTS[AccountType.PROD];
