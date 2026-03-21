@@ -9,3 +9,6 @@ cdk.out
 
 # MacOS
 .DS_Store
+
+# Antigravity
+.agents/
