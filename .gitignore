@@ -12,3 +12,6 @@ cdk.out
 
 # Antigravity
 .agents/
+
+# Build output
+dist/
