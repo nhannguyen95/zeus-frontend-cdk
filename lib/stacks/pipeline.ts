@@ -4,41 +4,38 @@ import { Construct } from 'constructs';
 import { CodePipeline, ShellStep, CodePipelineSource, ManualApprovalStep } from 'aws-cdk-lib/pipelines';
 import { aws_codestarconnections as codeconnections } from 'aws-cdk-lib';
 import { ApplicationStage } from '../stages/application';
-import { Stage } from '../constants';
+import { Stage, Repo, REPOS } from '../configs';
 
-interface PipelineStackProps extends cdk.StackProps {
-    stages: Array<Stage>
+interface PipelineStackProps {
+    readonly stages: Array<Stage>;
+    readonly pipelineName: string;
+    readonly awsAccountId: string;
+    readonly awsRegionId: string;
 }
 
 export class PipelineStack extends cdk.Stack {
+    public readonly pipeline: CodePipeline;
+
     constructor(scope: Construct, id: string, props: PipelineStackProps) {
-        super(scope, id, props);
+        super(scope, id, {
+            env: {
+                account: props.awsAccountId,
+                region: props.awsRegionId,
+            }
+        });
 
-        const pipeline = this.createCodePipeline();
+        this.pipeline = this.createCodePipeline(props.pipelineName);
 
-        this.createDeploymentStages(pipeline, props.stages);
+        this.createDeploymentStages(this.pipeline, props.stages);
     }
 
-    createCodePipeline(): CodePipeline {
-        const githubConnection = new codeconnections.CfnConnection(
-            this,
-            'GithubConnection',
-            {
-                connectionName: 'nhannguyen95-github-connection',
-                providerType: 'GitHub',
-            }
-        );
-
-        const cdkRepo = CodePipelineSource.connection('nhannguyen95/zeus-frontend-cdk', 'main', {
-            connectionArn: githubConnection.attrConnectionArn,
-        });
-
-        const appRepo = CodePipelineSource.connection('nhannguyen95/zeus-frontend', 'main', {
-            connectionArn: githubConnection.attrConnectionArn,
-        });
+    createCodePipeline(pipelineName: string): CodePipeline {
+        const githubConnection = this.createGithubConnection();
+        const cdkRepo = this.createSourceRepo(githubConnection, REPOS.cdk);
+        const appRepo = this.createSourceRepo(githubConnection, REPOS.app);
 
         const pipeline = new CodePipeline(this, 'Pipeline', {
-            pipelineName: 'zeus-frontend-pipeline',
+            pipelineName: pipelineName,
             // Encrypt artifacts, required for cross-account deployments
             crossAccountKeys: true,
             enableKeyRotation: true, // optional
@@ -62,6 +59,23 @@ export class PipelineStack extends cdk.Stack {
         });
 
         return pipeline;
+    }
+
+    createGithubConnection(): codeconnections.CfnConnection {
+        return new codeconnections.CfnConnection(
+            this,
+            'GithubConnection',
+            {
+                connectionName: 'nhannguyen95-github-connection',
+                providerType: 'GitHub',
+            }
+        );
+    }
+
+    createSourceRepo(githubConnection: codeconnections.CfnConnection, repo: Repo): CodePipelineSource {
+        return CodePipelineSource.connection(repo.name, repo.branch, {
+            connectionArn: githubConnection.attrConnectionArn,
+        });
     }
 
     createDeploymentStages(pipeline: CodePipeline, stages: Array<Stage>) {

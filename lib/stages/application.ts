@@ -1,7 +1,7 @@
 import { DistributionStack } from '../stacks/distribution';
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Stage } from '../constants';
+import { Stage } from '../configs';
 
 interface ApplicationStageProps extends cdk.StageProps {
     websiteAssetPath: string;
