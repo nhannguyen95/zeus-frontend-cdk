@@ -25,8 +25,8 @@ function createStage(pipelineStack: PipelineStack, stageConfig: StageConfig) {
         pipelineStack,
         stageConfig.stageName,
         {
-            ...stageConfig,
-            websiteAssetPath: '../app/out',
+            awsAccountId: stageConfig.awsAccountId,
+            awsRegionId: stageConfig.awsRegionId,
         }
     ));
     stage.addPost(new ManualApprovalStep('Manual Approval'));

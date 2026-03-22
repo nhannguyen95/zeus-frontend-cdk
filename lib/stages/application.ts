@@ -3,7 +3,6 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 interface ApplicationStageProps {
-    readonly websiteAssetPath: string;
     readonly awsAccountId: string;
     readonly awsRegionId: string;
 }
@@ -18,7 +17,7 @@ export class ApplicationStage extends cdk.Stage {
         });
 
         new DistributionStack(this, `DistributionStack`, {
-            websiteAssetPath: props.websiteAssetPath,
+            websiteAssetPath: 'app',
         });
     }
 }

@@ -20,7 +20,7 @@ The infrastructure is built using AWS CDK with TypeScript and includes:
 - **`lib/`**:
   - **`stacks/`**: Definition of the infrastructure stacks (Distribution, Pipeline).
   - **`stages/`**: Deployment stages for different environments.
-  - **`constants/`**: Shared constants and configuration.
+  - **`configs/`**: Shared constants and configuration.
 
 ## Useful commands
 

@@ -1,7 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import { Construct } from 'constructs';
-import { CodePipeline, ShellStep, CodePipelineSource } from 'aws-cdk-lib/pipelines';
+import { CodePipeline, ShellStep, CodePipelineSource, CodeBuildStep } from 'aws-cdk-lib/pipelines';
 import { aws_codestarconnections as codeconnections } from 'aws-cdk-lib';
 import { Repo, REPOS } from '../configs';
 
@@ -46,23 +46,47 @@ export class PipelineStack extends cdk.Stack {
     }
 
     createCodePipeline(pipelineName: string, cdkRepo: CodePipelineSource, appRepo: CodePipelineSource): CodePipeline {
+        const appBuild = new CodeBuildStep('BuildApp', {
+            input: appRepo,
+            buildEnvironment: {
+                buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
+            },
+            partialBuildSpec: codebuild.BuildSpec.fromObject({
+                phases: {
+                    install: {
+                        'runtime-versions': {
+                            nodejs: '20'
+                        }
+                    }
+                }
+            }),
+            commands: [
+                'npm install',
+                'npm run build',
+            ],
+            primaryOutputDirectory: 'out',  // NextJS's defaut static export folder
+        });
+
+        const cdkSynth = new ShellStep('Synth', {
+            input: cdkRepo,
+            additionalInputs: {
+                app: appBuild,
+            },
+            commands: [
+                'ls -la',
+                'ls -la app/',
+                'npm install',
+                'npm run build',
+                'npm run cdk synth'
+            ]
+        });
+
         const pipeline = new CodePipeline(this, 'Pipeline', {
             pipelineName: pipelineName,
             // Encrypt artifacts, required for cross-account deployments
             crossAccountKeys: true,
             enableKeyRotation: true, // optional
-            synth: new ShellStep('Synth', {
-                input: cdkRepo,
-                additionalInputs: {
-                    '../app': appRepo,
-                },
-                commands: [
-                    // TODO: build the appRepo
-                    'npm install',
-                    'npm run build',
-                    'npm run cdk synth'
-                ]
-            }),
+            synth: cdkSynth,
             codeBuildDefaults: {
                 buildEnvironment: {
                     buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,

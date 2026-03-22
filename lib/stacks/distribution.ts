@@ -7,13 +7,13 @@ import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 
 export interface DistributionStackProps extends cdk.StackProps {
     /**
-     * Path to the TanStack Start static export output directory
+     * Path to the NextJS static export output directory
      */
     websiteAssetPath: string;
 }
 
 export class DistributionStack extends cdk.Stack {
-    public readonly distributionUrl: string;
+    public readonly websiteUrl: string;
 
     constructor(scope: Construct, id: string, props: DistributionStackProps) {
         super(scope, id, props);
@@ -23,61 +23,29 @@ export class DistributionStack extends cdk.Stack {
             bucketName: `zeus-frontend-${this.account}-${this.region}`,
             removalPolicy: cdk.RemovalPolicy.DESTROY,
             autoDeleteObjects: true,
-            blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+            websiteIndexDocument: 'index.html',
+            websiteErrorDocument: 'index.html',
+            publicReadAccess: true,
+            blockPublicAccess: new s3.BlockPublicAccess({
+                blockPublicAcls: false,
+                blockPublicPolicy: false,
+                ignorePublicAcls: false,
+                restrictPublicBuckets: false,
+            }),
         });
 
-        // CloudFront Origin Access Identity
-        // const originAccessIdentity = new cloudfront.OriginAccessIdentity(
-        //     this,
-        //     'OriginAccessIdentity',
-        //     {
-        //         comment: 'OAI for Zeus Frontend',
-        //     }
-        // );
-
-        // Grant read access to CloudFront
-        // websiteBucket.grantRead(originAccessIdentity);
-
-        // CloudFront distribution
-        // const distribution = new cloudfront.Distribution(this, 'Distribution', {
-        //     defaultBehavior: {
-        //         origin: new origins.S3Origin(websiteBucket, {
-        //             originAccessIdentity,
-        //         }),
-        //         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        //         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-        //     },
-        //     defaultRootObject: 'index.html',
-        //     errorResponses: [
-        //         {
-        //             httpStatus: 403,
-        //             responseHttpStatus: 200,
-        //             responsePagePath: '/index.html',
-        //             ttl: cdk.Duration.minutes(5),
-        //         },
-        //         {
-        //             httpStatus: 404,
-        //             responseHttpStatus: 200,
-        //             responsePagePath: '/index.html',
-        //             ttl: cdk.Duration.minutes(5),
-        //         },
-        //     ],
-        // });
-
         // Deploy website assets to S3
-        // new s3deploy.BucketDeployment(this, 'DeployWebsite', {
-        //     sources: [s3deploy.Source.asset(props.websiteAssetPath)],
-        //     destinationBucket: websiteBucket,
-        //     distribution,
-        //     distributionPaths: ['/*'],
-        // });
+        new s3deploy.BucketDeployment(this, 'DeployWebsite', {
+            sources: [s3deploy.Source.asset(props.websiteAssetPath)],
+            destinationBucket: websiteBucket,
+        });
 
-        // this.distributionUrl = `https://${distribution.distributionDomainName}`;
+        this.websiteUrl = websiteBucket.bucketWebsiteUrl;
 
-        // Output the CloudFront URL
-        // new cdk.CfnOutput(this, 'DistributionUrl', {
-        //     value: this.distributionUrl,
-        //     description: 'CloudFront distribution URL',
-        // });
+        // Output the S3 Website URL
+        new cdk.CfnOutput(this, 'WebsiteUrl', {
+            value: this.websiteUrl,
+            description: 'S3 Website URL',
+        });
     }
 }
