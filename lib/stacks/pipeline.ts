@@ -22,14 +22,30 @@ export class PipelineStack extends cdk.Stack {
             }
         });
 
-        this.pipeline = this.createCodePipeline(props.pipelineName);
-    }
-
-    createCodePipeline(pipelineName: string): CodePipeline {
         const githubConnection = this.createGithubConnection();
         const cdkRepo = this.createSourceRepo(githubConnection, REPOS.cdk);
         const appRepo = this.createSourceRepo(githubConnection, REPOS.app);
+        this.pipeline = this.createCodePipeline(props.pipelineName, cdkRepo, appRepo);
+    }
 
+    createGithubConnection(): codeconnections.CfnConnection {
+        return new codeconnections.CfnConnection(
+            this,
+            'GithubConnection',
+            {
+                connectionName: 'nhannguyen95-github-connection',
+                providerType: 'GitHub',
+            }
+        );
+    }
+
+    createSourceRepo(githubConnection: codeconnections.CfnConnection, repo: Repo): CodePipelineSource {
+        return CodePipelineSource.connection(repo.name, repo.branch, {
+            connectionArn: githubConnection.attrConnectionArn,
+        });
+    }
+
+    createCodePipeline(pipelineName: string, cdkRepo: CodePipelineSource, appRepo: CodePipelineSource): CodePipeline {
         const pipeline = new CodePipeline(this, 'Pipeline', {
             pipelineName: pipelineName,
             // Encrypt artifacts, required for cross-account deployments
@@ -53,24 +69,6 @@ export class PipelineStack extends cdk.Stack {
                 },
             },
         });
-
         return pipeline;
-    }
-
-    createGithubConnection(): codeconnections.CfnConnection {
-        return new codeconnections.CfnConnection(
-            this,
-            'GithubConnection',
-            {
-                connectionName: 'nhannguyen95-github-connection',
-                providerType: 'GitHub',
-            }
-        );
-    }
-
-    createSourceRepo(githubConnection: codeconnections.CfnConnection, repo: Repo): CodePipelineSource {
-        return CodePipelineSource.connection(repo.name, repo.branch, {
-            connectionArn: githubConnection.attrConnectionArn,
-        });
     }
 }
