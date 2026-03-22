@@ -1,13 +1,11 @@
 import * as cdk from 'aws-cdk-lib';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import { Construct } from 'constructs';
-import { CodePipeline, ShellStep, CodePipelineSource, ManualApprovalStep } from 'aws-cdk-lib/pipelines';
+import { CodePipeline, ShellStep, CodePipelineSource } from 'aws-cdk-lib/pipelines';
 import { aws_codestarconnections as codeconnections } from 'aws-cdk-lib';
-import { ApplicationStage } from '../stages/application';
-import { Stage, Repo, REPOS } from '../configs';
+import { Repo, REPOS } from '../configs';
 
 interface PipelineStackProps {
-    readonly stages: Array<Stage>;
     readonly pipelineName: string;
     readonly awsAccountId: string;
     readonly awsRegionId: string;
@@ -25,8 +23,6 @@ export class PipelineStack extends cdk.Stack {
         });
 
         this.pipeline = this.createCodePipeline(props.pipelineName);
-
-        this.createDeploymentStages(this.pipeline, props.stages);
     }
 
     createCodePipeline(pipelineName: string): CodePipeline {
@@ -75,24 +71,6 @@ export class PipelineStack extends cdk.Stack {
     createSourceRepo(githubConnection: codeconnections.CfnConnection, repo: Repo): CodePipelineSource {
         return CodePipelineSource.connection(repo.name, repo.branch, {
             connectionArn: githubConnection.attrConnectionArn,
-        });
-    }
-
-    createDeploymentStages(pipeline: CodePipeline, stages: Array<Stage>) {
-        stages.forEach(stage => {
-            const appStage = pipeline.addStage(new ApplicationStage(
-                this,
-                stage.name,
-                {
-                    websiteAssetPath: '../app/out',  // Path to NextJS static export
-                    stage,
-                    env: {
-                        account: stage.account.id,
-                        region: stage.account.region,
-                    }
-                }
-            ));
-            appStage.addPost(new ManualApprovalStep('Manual Approval'));
         });
     }
 }
