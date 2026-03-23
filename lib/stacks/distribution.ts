@@ -24,7 +24,7 @@ export class DistributionStack extends cdk.Stack {
             removalPolicy: cdk.RemovalPolicy.DESTROY,
             autoDeleteObjects: true,
             websiteIndexDocument: 'index.html',
-            websiteErrorDocument: 'index.html',
+            websiteErrorDocument: '404.html',
             publicReadAccess: true,
             blockPublicAccess: new s3.BlockPublicAccess({
                 blockPublicAcls: false,
