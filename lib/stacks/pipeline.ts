@@ -73,8 +73,6 @@ export class PipelineStack extends cdk.Stack {
                 app: appBuild,
             },
             commands: [
-                'ls -la',
-                'ls -la app/',
                 'npm install',
                 'npm run build',
                 'npm run cdk synth'
